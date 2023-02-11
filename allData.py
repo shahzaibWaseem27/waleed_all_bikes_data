@@ -1,4 +1,4 @@
-def getAllData(bikeBrand, first_page_URL, second_page_URL):
+def getAllData(bikeBrand, first_page_URL, second_page_URL=""):
     
     all_URLs = [first_page_URL, second_page_URL]
 
@@ -23,6 +23,10 @@ def getAllData(bikeBrand, first_page_URL, second_page_URL):
     for txt_path in all_txt_paths:
         currentFile = open(txt_path, "a")
         allFiles.append(currentFile)
+    
+    file_descr = open("./" + bikeBrand + "/description.txt", "a")
+    file_fullPrice = open("./" + bikeBrand + "/fullPrice.txt", "a")
+    file_clubPrice = open("./" + bikeBrand + "/clubPrice.txt", "a")
 
     dataCategory_to_file = {}
 
@@ -40,6 +44,20 @@ def getAllData(bikeBrand, first_page_URL, second_page_URL):
             eachBike_response = requests.get(eachBike_URL)
             eachBikeSoup = BeautifulSoup(eachBike_response.content, "html.parser")
 
+            descr_soup = eachBikeSoup.find("span", class_="base")
+            descr_text = descr_soup.text
+            descr = str(descr_text) + "\n"
+            file_descr.write(descr)
+
+            full_price_soup = eachBikeSoup.find("span", class_="full-price")
+            club_price_soup = eachBikeSoup.find("span", class_="special-price")
+            full_price_text = full_price_soup.find("span", class_="price").text
+            club_price_text = club_price_soup.find("span", class_="price").text
+            full_price = str(full_price_text) + "\n"
+            club_price = str(club_price_text) + "\n"
+            file_fullPrice.write(full_price)
+            file_clubPrice.write(club_price)
+
             table = eachBikeSoup.find("table", class_="data table additional-attributes")
             table_body = table.find("tbody")
             table_body_rows = table_body.find_all("tr")
@@ -55,6 +73,11 @@ def getAllData(bikeBrand, first_page_URL, second_page_URL):
                     if(bikeDataTitle == allDataCategories[i]):
                         foundData = True
                         bikeDataValue = str(bikeDataValue_soup.text) + "\n"
+                        for char in bikeDataValue:
+                            currentCharASCII = ord(char)
+                            isValidChar = currentCharASCII >= 0 and currentCharASCII <= 127
+                            if(not isValidChar):
+                                bikeDataValue = bikeDataValue.replace(char, "")
                         allFiles[i].write(bikeDataValue)
                         break
                 if(not foundData):
@@ -63,37 +86,4 @@ def getAllData(bikeBrand, first_page_URL, second_page_URL):
             
     for file in allFiles:
         file.close()
-
-
-    
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
     
